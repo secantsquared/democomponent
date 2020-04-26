@@ -1,0 +1,1 @@
+{"version":3,"sources":["index.css"],"names":[],"mappings":"AAAA,KACE,WAAY,CACZ,YACF,CAEA,IACE,aAAc,CACd,aACF","file":"main.2bdfd47e.chunk.css","sourcesContent":["body {\n  width: 100vw;\n  height: 100vh;\n}\n\nimg {\n  max-width: 60%;\n  display: block;\n}\n"]}
