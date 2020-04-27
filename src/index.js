@@ -1,24 +1,12 @@
-import React, { useEffect, useState, useRef } from 'react'
+import React, { useEffect, useState } from 'react'
 import ReactDOM from 'react-dom'
-import './index.css'
+import DropDown from './DropDown'
+import { removeDupes } from './removeDupes'
 
-const DropDown = props => {
-  return (
-    <>
-      <select onChange={e => props.getId(e)} name="wordcloud" id="wordcloud">
-        {props.options.map((o, i) => (
-          <option id={props.id} key={i}>
-            {o}
-          </option>
-        ))}
-      </select>
-    </>
-  )
-}
+import './index.css'
 
 const WordCloud = () => {
   const [data, setData] = useState([])
-  const [dataRaw, setDataRaw] = useState()
   const [date, setDate] = useState(null)
   const [newspaper, setNewsPaper] = useState(null)
 
@@ -29,32 +17,46 @@ const WordCloud = () => {
       setNewsPaper(e.target.selectedOptions[0].textContent)
     }
   }
+
   useEffect(() => {
-    fetch('http://localhost:3000/data.json')
+    fetch(
+      process.env.NODE_ENV === 'production'
+        ? process.env.REACT_APP_PROD_URL
+        : process.env.REACT_APP_DEV_URL
+    )
       .then(res => res.json())
       .then(data => {
-        setDataRaw(data)
         const values = Object.values(data)
         setData(values.map((val, i) => ({ ...val, id: i })))
       })
       .catch(err => console.error(err))
   }, [])
 
-  const newspapers1 = data.map(d => d.newspaper)
-  const newspapersSet = new Set(newspapers1)
-  const newspapers = Array.from(newspapersSet)
-  const datesDirty = data.map(d => d.date)
-  const datesSet = new Set(datesDirty)
-  const dates = Array.from(datesSet)
   return (
-    <div classname="App">
-      <DropDown options={newspapers} getId={getId} id="newspaper" />
-      <DropDown options={dates} getId={getId} id="date" />
+    <div className="App">
+      <DropDown
+        options={removeDupes(data, 'newspaper')}
+        getId={getId}
+        id="newspaper"
+      />
+      <DropDown options={removeDupes(data, 'date')} getId={getId} id="date" />
       {data
         .filter(d => d.date === date && d.newspaper === newspaper)
-        .map((d, i) => {
-          return <img key={i} src={d['IMG URL'] || null} alt="wordcloud" />
-        })}
+        .map((d, i) =>
+          d['IMG URL'] !== 'none' ? (
+            <img
+              key={i}
+              src={d['IMG URL']}
+              alt={`Wordcloud for ${d.newspaper} on ${d.date}`}
+            />
+          ) : (
+            <p key={i}>
+              Sorry! A wordcloud couldn't be generated for {d.newspaper} on the
+              selected date ({d.date}).
+            </p>
+          )
+        )}
+      <button onClick={handleOptionReset}>RESET</button>
     </div>
   )
 }
